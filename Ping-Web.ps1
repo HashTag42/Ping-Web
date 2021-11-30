@@ -102,7 +102,7 @@ While( $InfiniteMode -or ( $count -le $Count ) ) {
         Write-Output $results | Export-Csv -Path $CsvFile -Append -NoTypeInformation -Force
     }
 
-    $count++
-
     Start-Sleep -Seconds $SleepSec
+
+    $count++
 }
