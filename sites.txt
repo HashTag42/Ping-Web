@@ -4,7 +4,7 @@
 #bnetdev.bungie.bng.local
 #bnetnext.bungie.bng.local
 #stage.bungie.net
-bypass.bungie.net
+#bypass.bungie.net
 www.bungie.net
 #www.blizzard.com
 #store.steampowered.com

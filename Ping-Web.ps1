@@ -6,7 +6,7 @@
 .EXAMPLE
    .\Ping-Web.ps1 -URI https://www.bungie.net
 .EXAMPLE
-   .\Ping-Web.ps1 -URI https://www.bungie.net -CsvFile D:\ping-data.csv
+   .\Ping-Web.ps1 -URI https://www.bungie.net -CsvFile .\ping-web_data.csv
 .EXAMPLE
    .\Ping-Web.ps1 -URI https://www.bungie.net -Count 4
 .EXAMPLE
@@ -17,8 +17,8 @@
     https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
 .NOTES
    Author:  cgarcia
-   Version:  1.0
-   Date Modified:  2021-10-11
+   Version:  1.1
+   Date Modified:  2025-02-03
 #>
 
 [CmdletBinding()]
@@ -43,8 +43,15 @@ Param(
     [UInt] $SleepSec = 1,
 
     # Specifies a CSV file to output data to
-    [String] $CsvFile
+    [String] $CsvFile = '.\Ping-Web_data.csv'
 )
+
+if (Test-Path $CsvFile) {
+    Write-Host "Removing $CsvFile"
+    Remove-Item $CsvFile
+}
+
+Write-Host "Saving results to $CsvFile"
 
 [Bool] $InfiniteMode = $False
 If( $Count -eq 0 ) {
@@ -64,7 +71,6 @@ While( $InfiniteMode -or ( $count -le $Count ) ) {
         StatusDescription       = $Null
         ElapsedTimeInMS         = $Null
         RawResponseLength       = $Null
-        XBungieNextMid2Header   = $Null
     }
 
     Try {
@@ -74,11 +80,6 @@ While( $InfiniteMode -or ( $count -le $Count ) ) {
         $results.StatusCode         = $response.StatusCode
         $results.StatusDescription  = $response.StatusDescription
         $results.RawResponseLength  = $response.RawContentLength
-
-        # Includes a response header only available from Bnet sites, if available
-        If( $response.Headers.ContainsKey('X-BungieNext-MID2') ) {
-            $results.XBungieNextMid2Header = $response.Headers['X-BungieNext-MID2'][0]
-        }
     }
     Catch [Microsoft.PowerShell.Commands.HttpResponseException] {
         $results.StatusCode         = [int] $PSitem.Exception.Response.StatusCode

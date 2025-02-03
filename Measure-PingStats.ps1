@@ -5,9 +5,9 @@
 [CmdletBinding()]
 param (
     # [Parameter(Mandatory= $true)]
-    [ValidateScript( {Test-Path -Path $_} )]
+    [ValidateScript( {Test-Path -Path $_} )]
     [String]
-    $CsvFile = "C:\Users\cgarcia\AppData\Local\Temp\2021-11-11_15-45-26_stage.bungie.net.csv"
+    $CsvFile = '.\Ping-Web_data.csv'
 )
 
 function Measure-PingStats {
@@ -19,8 +19,7 @@ function Measure-PingStats {
     process {
         $csv= Import-Csv -Path $CsvFile
         $csv | Get-Member
-        $csv | Measure-Object  -AllStats -Property StatusCode
-        $csv | Measure-Object  -AllStats -Property Milliseconds
+        $csv | Measure-Object -AllStats -Property ElapsedTimeInMS
     }
 
     end {
