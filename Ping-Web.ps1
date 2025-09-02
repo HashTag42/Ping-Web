@@ -1,37 +1,36 @@
 <#
 .Synopsis
-   Pings the specified URI.
+   Pings the specified URL.
 .DESCRIPTION
    Verifies connectivity to a web page or web service by repeatedly sending HTTP or HTTPS requests.
 .EXAMPLE
-   .\Ping-Web.ps1 -URI https://www.bungie.net
+   .\Ping-Web.ps1 -URL cesar-garcia.com
 .EXAMPLE
-   .\Ping-Web.ps1 -URI https://www.bungie.net -CsvFile .\ping-web_data.csv
+   .\Ping-Web.ps1 -URL cesar-garcia.com -CsvFile .\ping-web_data.csv
 .EXAMPLE
-   .\Ping-Web.ps1 -URI https://www.bungie.net -Count 4
+   .\Ping-Web.ps1 -URL cesar-garcia.com -Count 4
 .EXAMPLE
-   .\Ping-Web.ps1 -URI https://www.bungie.net -TimeoutSec 10
+   .\Ping-Web.ps1 -URL cesar-garcia.com -TimeoutSec 10
 .EXAMPLE
-   .\Ping-Web.ps1 -URI https://www.bungie.net -SleepSec 3
+   .\Ping-Web.ps1 -URL cesar-garcia.com -SleepSec 3
 .LINK
     https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
 .NOTES
-   Author:  cgarcia
-   Version:  1.1
-   Date Modified:  2025-02-03
+   Author:  Cesar Garcia
+   Version:  1.2
+   Date Modified:  2025-09-02
 #>
 
 [CmdletBinding()]
 Param(
-    # Specifies the Uniform Resource Identifier (URI) of the internet resource to which the web request is sent.
-    # Enter a URI. This parameter supports HTTP or HTTPS only.
-    [Parameter(Mandatory = $True)]
-    [String] $URI = 'https://www.bungie.net',
+    # Specifies the Uniform Resource Identifier (URL) of the internet resource to which the web request is sent.
+    # Enter a URL. This parameter supports HTTP or HTTPS only.
+    [String] $URL = "cesar-garcia.com",
 
     # Specifies the number of requests to be sent.
     # A value of 0 specifies an unlimited number of requests.
     [ValidateRange(0, [UInt]::MaxValue)]
-    [UInt] $Count = 0,
+    [UInt] $Count = 4,
 
     # Specifies how long the request can be pending before it times out. Enter a value in seconds.
     # The default value, 0, specifies an indefinite time-out.
@@ -43,29 +42,31 @@ Param(
     [UInt] $SleepSec = 1,
 
     # Specifies a CSV file to output data to
-    [String] $CsvFile = '.\Ping-Web_data.csv'
+    [String] $CsvFile
 )
 
-if (Test-Path $CsvFile) {
-    Write-Host "Removing $CsvFile"
-    Remove-Item $CsvFile
+Write-Host "Sending web requests to: $URL"
+
+If ($CsvFile -eq "") {
+    $TmpFile = [System.IO.Path]::GetTempFileName()
+    $CsvFile = [System.IO.Path]::ChangeExtension($TmpFile, ".csv")
 }
 
-Write-Host "Saving results to $CsvFile"
-
-[Bool] $InfiniteMode = $False
 If( $Count -eq 0 ) {
     $InfiniteMode = $True
 }
+Else {
+    $InfiniteMode = $False
+}
 
-[UInt64] $count = 1
-While( $InfiniteMode -or ( $count -le $Count ) ) {
+[UInt64] $n = 1
+While( $InfiniteMode -or ( $n -le $Count ) ) {
 
     [System.DateTime] $startTime = Get-Date
 
     $results = [PSCustomObject]@{
-        Count                   = $count
-        URI                     = $URI
+        Count                   = $n
+        URL                     = $URL
         StartTime               = $startTime.ToString('O')
         StatusCode              = $Null
         StatusDescription       = $Null
@@ -75,8 +76,7 @@ While( $InfiniteMode -or ( $count -le $Count ) ) {
 
     Try {
         [Microsoft.PowerShell.Commands.WebResponseObject] `
-        $response = Invoke-WebRequest -Uri $URI -TimeoutSec $TimeoutSec -DisableKeepAlive
-
+        $response = Invoke-WebRequest -URI $URL -TimeoutSec $TimeoutSec -DisableKeepAlive
         $results.StatusCode         = $response.StatusCode
         $results.StatusDescription  = $response.StatusDescription
         $results.RawResponseLength  = $response.RawContentLength
@@ -105,5 +105,9 @@ While( $InfiniteMode -or ( $count -le $Count ) ) {
 
     Start-Sleep -Seconds $SleepSec
 
-    $count++
+    $n++
 }
+
+Write-Host "Detailed results saved at $CsvFile"
+Write-Host "Statistics for response time in milli-seconds for: $URL"
+Import-Csv -Path $CsvFile | Measure-Object -Property ElapsedTimeInMS -AllStats
