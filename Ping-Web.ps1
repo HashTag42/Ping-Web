@@ -1,6 +1,6 @@
 <#
 .Synopsis
-   Sends web requets to the specified URL.
+   Sends web requests to the specified URL.
 .DESCRIPTION
    Verifies connectivity to a web page or web service by repeatedly sending web requests.
 .EXAMPLE
@@ -10,11 +10,11 @@
 .EXAMPLE
    .\Ping-Web.ps1 -URL cesar-garcia.com -Count 4
 .EXAMPLE
+   .\Ping-Web.ps1 -URL cesar-garcia.com -SleepSec 3
+.EXAMPLE
    .\Ping-Web.ps1 -URL cesar-garcia.com -T
 .EXAMPLE
    .\Ping-Web.ps1 -URL cesar-garcia.com -TimeoutSec 10
-.EXAMPLE
-   .\Ping-Web.ps1 -URL cesar-garcia.com -SleepSec 3
 .LINK
     https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
 .NOTES
@@ -34,6 +34,11 @@ Param(
     [ValidateRange(1, [UInt]::MaxValue)]
     [UInt] $Count = 4,
 
+    # Specifies how long to wait in between requests.
+    # Enter a value in seconds.
+    [ValidateRange(0, [UInt]::MaxValue)]
+    [UInt] $SleepSec = 1,
+
     # Sends web requests until stopped.
     # To stop - type Control-C
     [switch] $T = $False,
@@ -44,12 +49,8 @@ Param(
     [ValidateRange(0, [UInt]::MaxValue)]
     [UInt] $TimeoutSec = 0,
 
-    # Specifies how long to wait in between requests.
-    # Enter a value in seconds.
-    [ValidateRange(0, [UInt]::MaxValue)]
-    [UInt] $SleepSec = 1,
-
     # Specifies a .CSV file to save data to.
+    # If not specified, results are saved to a temporary file.
     [String] $CsvFile
 )
 
@@ -67,17 +68,17 @@ $InfiniteMode = $t ? $True : $False
 [UInt64] $n = 1
 While( $InfiniteMode -or ( $n -le $Count ) ) {
 
-    [System.DateTime] $startTime = Get-Date
-
     $results = [PSCustomObject]@{
         Count                   = $n
         URL                     = $URL
         StartTime               = $startTime.ToString('O')
         StatusCode              = $Null
         StatusDescription       = $Null
-        ElapsedTimeInMS         = $Null
+        ResponseTimeInMS        = $Null
         RawResponseLength       = $Null
     }
+
+    [System.DateTime] $startTime = Get-Date
 
     Try {
         [Microsoft.PowerShell.Commands.WebResponseObject] `
@@ -99,8 +100,8 @@ While( $InfiniteMode -or ( $n -le $Count ) ) {
         $results.StatusDescription  = $PSItem.Exception.Message
     }
     Finally {
-        [TimeSpan] $elapsedTime = (New-TimeSpan -Start $startTime -End (Get-Date))
-        $results.ElapsedTimeInMS    = $elapsedTime.TotalMilliseconds
+        [TimeSpan] $responseTime = (New-TimeSpan -Start $startTime -End (Get-Date))
+        $results.ResponseTimeInMS = $responseTime.TotalMilliseconds
     }
 
     Write-Host $results | Format-Table -AutoSize
@@ -115,4 +116,4 @@ While( $InfiniteMode -or ( $n -le $Count ) ) {
 
 Write-Host "Results have been saved to: $CsvFile`n"
 Write-Host "Ping-Web statistics for $URL`:"
-Import-Csv -Path $CsvFile | Measure-Object -Property ElapsedTimeInMS -AllStats
+Import-Csv -Path $CsvFile | Measure-Object -Property ResponseTimeInMS -AllStats
