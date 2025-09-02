@@ -1,14 +1,16 @@
 <#
 .Synopsis
-   Pings the specified URL.
+   Sends web requets to the specified URL.
 .DESCRIPTION
-   Verifies connectivity to a web page or web service by repeatedly sending HTTP or HTTPS requests.
+   Verifies connectivity to a web page or web service by repeatedly sending web requests.
 .EXAMPLE
    .\Ping-Web.ps1 -URL cesar-garcia.com
 .EXAMPLE
    .\Ping-Web.ps1 -URL cesar-garcia.com -CsvFile .\ping-web_data.csv
 .EXAMPLE
    .\Ping-Web.ps1 -URL cesar-garcia.com -Count 4
+.EXAMPLE
+   .\Ping-Web.ps1 -URL cesar-garcia.com -T
 .EXAMPLE
    .\Ping-Web.ps1 -URL cesar-garcia.com -TimeoutSec 10
 .EXAMPLE
@@ -23,25 +25,31 @@
 
 [CmdletBinding()]
 Param(
-    # Specifies the Uniform Resource Identifier (URL) of the internet resource to which the web request is sent.
-    # Enter a URL. This parameter supports HTTP or HTTPS only.
+    # The Uniform Resource Identifier (URL) of the internet resource to which the web request is sent.
+    # Enter a URL. This parameter only supports HTTP or HTTPS protocols.
     [String] $URL = "cesar-garcia.com",
 
     # Specifies the number of requests to be sent.
     # A value of 0 specifies an unlimited number of requests.
-    [ValidateRange(0, [UInt]::MaxValue)]
+    [ValidateRange(1, [UInt]::MaxValue)]
     [UInt] $Count = 4,
 
-    # Specifies how long the request can be pending before it times out. Enter a value in seconds.
-    # The default value, 0, specifies an indefinite time-out.
+    # Sends web requests until stopped.
+    # To stop - type Control-C
+    [switch] $T = $False,
+
+    # Specifies how long the request can be pending before it times out.
+    # Enter a value in seconds.
+    # The default value of 0 specifies an indefinite time-out.
     [ValidateRange(0, [UInt]::MaxValue)]
     [UInt] $TimeoutSec = 0,
 
-    # Specifies how long to wait in between requests. Enter a value in seconds.
+    # Specifies how long to wait in between requests.
+    # Enter a value in seconds.
     [ValidateRange(0, [UInt]::MaxValue)]
     [UInt] $SleepSec = 1,
 
-    # Specifies a CSV file to output data to
+    # Specifies a .CSV file to save data to.
     [String] $CsvFile
 )
 
@@ -52,12 +60,9 @@ If ($CsvFile -eq "") {
     $CsvFile = [System.IO.Path]::ChangeExtension($TmpFile, ".csv")
 }
 
-If( $Count -eq 0 ) {
-    $InfiniteMode = $True
-}
-Else {
-    $InfiniteMode = $False
-}
+Write-Host "Results will be saved to: $CsvFile"
+
+$InfiniteMode = $t ? $True : $False
 
 [UInt64] $n = 1
 While( $InfiniteMode -or ( $n -le $Count ) ) {
@@ -108,6 +113,6 @@ While( $InfiniteMode -or ( $n -le $Count ) ) {
     $n++
 }
 
-Write-Host "Detailed results saved at $CsvFile"
-Write-Host "Statistics for response time in milli-seconds for: $URL"
+Write-Host "Results have been saved to: $CsvFile`n"
+Write-Host "Ping-Web statistics for $URL`:"
 Import-Csv -Path $CsvFile | Measure-Object -Property ElapsedTimeInMS -AllStats
