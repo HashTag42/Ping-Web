@@ -4,17 +4,17 @@
 .DESCRIPTION
    Verifies connectivity to a web page or web service by repeatedly sending web requests.
 .EXAMPLE
-   .\Ping-Web.ps1 -URL cesar-garcia.com
+   .\Ping-Web.ps1 -URL google.com
 .EXAMPLE
-   .\Ping-Web.ps1 -URL cesar-garcia.com -CsvFile .\ping-web_data.csv
+   .\Ping-Web.ps1 -URL google.com -CsvFile .\ping-web_data.csv
 .EXAMPLE
-   .\Ping-Web.ps1 -URL cesar-garcia.com -Count 4
+   .\Ping-Web.ps1 -URL google.com -Count 4
 .EXAMPLE
-   .\Ping-Web.ps1 -URL cesar-garcia.com -SleepSec 3
+   .\Ping-Web.ps1 -URL google.com -SleepSec 3
 .EXAMPLE
-   .\Ping-Web.ps1 -URL cesar-garcia.com -T
+   .\Ping-Web.ps1 -URL google.com -T
 .EXAMPLE
-   .\Ping-Web.ps1 -URL cesar-garcia.com -TimeoutSec 10
+   .\Ping-Web.ps1 -URL google.com -TimeoutSec 10
 .LINK
     https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
 .NOTES
@@ -27,7 +27,7 @@
 Param(
     # The Uniform Resource Identifier (URL) of the internet resource to which the web request is sent.
     # Enter a URL. This parameter only supports HTTP or HTTPS protocols.
-    [String] $URL = "cesar-garcia.com",
+    [String] $URL = "google.com",
 
     # Specifies the number of requests to be sent.
     # A value of 0 specifies an unlimited number of requests.
@@ -68,6 +68,8 @@ $InfiniteMode = $t ? $True : $False
 [UInt64] $n = 1
 While( $InfiniteMode -or ( $n -le $Count ) ) {
 
+    [System.DateTime] $startTime = Get-Date
+
     $results = [PSCustomObject]@{
         Count                   = $n
         URL                     = $URL
@@ -77,8 +79,6 @@ While( $InfiniteMode -or ( $n -le $Count ) ) {
         ResponseTimeInMS        = $Null
         RawResponseLength       = $Null
     }
-
-    [System.DateTime] $startTime = Get-Date
 
     Try {
         [Microsoft.PowerShell.Commands.WebResponseObject] `
