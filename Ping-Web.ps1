@@ -63,10 +63,8 @@ If ($CsvFile -eq "") {
 
 Write-Host "Results will be saved to: $CsvFile"
 
-$InfiniteMode = $t ? $True : $False
-
 [UInt64] $n = 1
-While( $InfiniteMode -or ( $n -le $Count ) ) {
+While( $T.IsPresent -or ( $n -le $Count ) ) {
 
     [System.DateTime] $startTime = Get-Date
 
